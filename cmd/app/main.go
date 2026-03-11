@@ -8,13 +8,15 @@ import (
 )
 
 
+const rootPath = "/Users/bobirmirzo/trailpkg"
+
 
 func main() {
 	
 	userInput := newUserInput(os.Args)
 
 	app := app{ input: userInput,
-		manifestManager: manifest.NewManifestManager("/Users/bobirmirzo/trailpkg"),
+		manifestManager: manifest.NewManifestManager(rootPath),
 	}
 
 	exitStatus := app.executeUserInput()

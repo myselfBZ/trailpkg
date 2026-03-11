@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"github.com/myselfBZ/trailpkg/internal/update"
 )
 
 var (
@@ -42,6 +43,15 @@ type PackageDependency struct {
 }
 
 func NewManifestManager(rootPath string) *ManifestManager {
+	pckgs, err := update.CheckForUpdateInManifest(path.Join(rootPath, "manifest"))
+
+	if err != nil {
+		fmt.Println("error checking for updates in manifest", err)
+	} else {
+		fmt.Println("Following packages have new versions available")
+		fmt.Println(pckgs)
+	}
+
 	manifest := &ManifestManager{
 		rootDir:     rootPath,
 		manifestDir: path.Join(rootPath, "manifest"),
