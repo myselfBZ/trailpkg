@@ -2,26 +2,23 @@ package manifest
 
 import (
 	"encoding/json"
-	"os"
 	"io"
+	"os"
 	"time"
 )
 
-
 type state struct {
-	// Suggestion: Could use a nice map[InstallRecord]bool as set here. 
-	// Fine for now
-	Installed []InstallRecord `json:"installed"`
+	LastManifestUpdate time.Time       `json:"last_manifest_update"`
+	Installed          []InstallRecord `json:"installed"`
 }
 
 type InstallRecord struct {
-	PackageName string `json:"name"`
-	Version 	string `json:"version"`
+	PackageName string    `json:"name"`
+	Version     string    `json:"version"`
 	InstalledAt time.Time `json:"installed_at"`
 }
 
-
-func NewInstallRecordManager(filepath string) *InstallRecordManager {
+func NewStateManager(filepath string) *StateManager {
 	file, err := os.OpenFile(filepath, os.O_RDWR|os.O_CREATE, 0644)
 
 	if err != nil {
@@ -34,22 +31,22 @@ func NewInstallRecordManager(filepath string) *InstallRecordManager {
 		panic(err)
 	}
 
-	return &InstallRecordManager{
-		file: file,
+	return &StateManager{
+		file:  file,
 		state: parsedState,
 	}
 }
 
-type InstallRecordManager struct {
-	file *os.File
+type StateManager struct {
+	file  *os.File
 	state state
 }
 
-func (i *InstallRecordManager) Append(record InstallRecord) {
+func (i *StateManager) Append(record InstallRecord) {
 	i.state.Installed = append(i.state.Installed, record)
 }
 
-func (i *InstallRecordManager) Remove(name string) {
+func (i *StateManager) Remove(name string) {
 
 	for idx := range len(i.state.Installed) {
 		if i.state.Installed[idx].PackageName == name {
@@ -60,7 +57,7 @@ func (i *InstallRecordManager) Remove(name string) {
 
 }
 
-func (i *InstallRecordManager) Find(name string) (InstallRecord, bool) {
+func (i *StateManager) Find(name string) (InstallRecord, bool) {
 	for idx := range len(i.state.Installed) {
 		if i.state.Installed[idx].PackageName == name {
 			return i.state.Installed[idx], true
@@ -70,10 +67,12 @@ func (i *InstallRecordManager) Find(name string) (InstallRecord, bool) {
 	return InstallRecord{}, false
 }
 
-func (i *InstallRecordManager) Save() error {
-    i.file.Seek(0, io.SeekStart)
-    i.file.Truncate(0)
-    return json.NewEncoder(i.file).Encode(i.state)
+func (i *StateManager) UpdateManifestTime(newTime time.Time) {
+	i.state.LastManifestUpdate = newTime
+} 
+
+func (i *StateManager) Save() error {
+	i.file.Seek(0, io.SeekStart)
+	i.file.Truncate(0)
+	return json.NewEncoder(i.file).Encode(i.state)
 }
-
-

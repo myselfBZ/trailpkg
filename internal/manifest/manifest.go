@@ -43,14 +43,7 @@ type PackageDependency struct {
 }
 
 func NewManifestManager(rootPath string) *ManifestManager {
-	pckgs, err := update.CheckForUpdateInManifest(path.Join(rootPath, "manifest"))
 
-	if err != nil {
-		fmt.Println("error checking for updates in manifest", err)
-	} else {
-		fmt.Println("Following packages have new versions available")
-		fmt.Println(pckgs)
-	}
 
 	manifest := &ManifestManager{
 		rootDir:     rootPath,
@@ -69,7 +62,7 @@ func NewManifestManager(rootPath string) *ManifestManager {
 	templateVars["{{N_CPUS}}"] = strconv.Itoa(cores)
 	manifest.templateVars = templateVars
 
-	manifest.installRecordManager = NewInstallRecordManager(path.Join(rootPath, "state.json"))
+	manifest.stateManager = NewStateManager(path.Join(rootPath, "state.json"))
 	return manifest
 }
 
@@ -80,9 +73,20 @@ type ManifestManager struct {
 	etcDir               string
 	storeDir             string
 	buildDir             string
-	installRecordManager *InstallRecordManager
+	stateManager *StateManager
 
 	templateVars map[string]string
+}
+
+func (m *ManifestManager) UpdateManifest() error {
+	err := update.ManifestUpdate(m.manifestDir)
+	if err != nil {
+		return err
+	}
+
+	m.stateManager.UpdateManifestTime(time.Now())
+	m.stateManager.Save()
+	return nil
 }
 
 func (m *ManifestManager) Remove(pckg string) error {
@@ -94,8 +98,8 @@ func (m *ManifestManager) Remove(pckg string) error {
 
 	defer func() {
 		if err == nil {
-			m.installRecordManager.Remove(pckg)
-			m.installRecordManager.Save()
+			m.stateManager.Remove(pckg)
+			m.stateManager.Save()
 		} 
 	}()
 
@@ -104,7 +108,7 @@ func (m *ManifestManager) Remove(pckg string) error {
 	storeLocation := path.Join(path.Join(m.storeDir, pkgNameVersion))
 
 
-	_, found := m.installRecordManager.Find(pckg)
+	_, found := m.stateManager.Find(pckg)
 
 	if !found {
 		return fmt.Errorf("error: package not installed")
@@ -141,12 +145,12 @@ func (m *ManifestManager) Install(pckg string) (err error) {
 		if err != nil {
 			m.cleanupOnFailedInstall(pkg)
 		} else {
-			m.installRecordManager.Append(InstallRecord{
+			m.stateManager.Append(InstallRecord{
 				PackageName: pkg.Name,
 				Version: pkg.Version,
 				InstalledAt: time.Now(),
 			})
-			m.installRecordManager.Save()
+			m.stateManager.Save()
 		}
 	}()
 

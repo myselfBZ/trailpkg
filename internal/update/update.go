@@ -1,61 +1,31 @@
 package update
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-// CheckForUpdateInManifest returns an array of packages that have a new version available
-func CheckForUpdateInManifest(path string) ([]string, error) {
-	files, err := getChangedFiles(path)
-
+func ManifestUpdate(path string) error {
+	fmt.Println("Checking for updates in the manifest...")
+	repo, err := git.PlainOpen(path)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	var result []string
+	worktree, _ := repo.Worktree()
 
-	for _, f := range files {
-		if f != "README.md" {
-			result = append(result, f)
-		}
-	}
-
-	return result, nil
-}
-
-func getChangedFiles(path string) ([]string, error) {
-	repo, _ := git.PlainOpen(path)
-
-	_ = repo.Fetch(&git.FetchOptions{
+	err = worktree.Pull(&git.PullOptions{
 		RemoteName: "origin",
 	})
 
-	ref, _ := repo.Head()
-	localCommit, _ := repo.CommitObject(ref.Hash())
+	if errors.Is(err, git.NoErrAlreadyUpToDate) {
+		fmt.Println("No updates available")
+		return nil
+	} else if err != nil {
+		return err
+	} 
 
-	remoteRef, _ := repo.Reference(plumbing.ReferenceName("refs/remotes/origin/main"), true)
-	remoteCommit, _ := repo.CommitObject(remoteRef.Hash())
-
-	localTree, _ := localCommit.Tree()
-	remoteTree, _ := remoteCommit.Tree()
-
-	changes, _ := object.DiffTree(localTree, remoteTree)
-
-	result := make([]string, len(changes))
-
-	for i, change := range changes {
-		name := ""
-		
-		if change.From.Name != "" {
-			name = change.From.Name
-		} else {
-			name = change.To.Name
-		}
-
-		result[i] = name
-	}
-
-	return result, nil
+	return nil
 }

@@ -16,6 +16,7 @@ type Verb string
 const (
 	Install Verb = "install"
 	Help    Verb = "help"
+	Update  Verb = "update"
 	Remove  Verb = "rm"
 )
 
@@ -67,6 +68,16 @@ func (a *app) executeUserInput() ExitStatus {
 			break
 		}
 		fmt.Printf("Package %s has been removed successfully\n", a.input.VerbArgs[0])
+
+	case Update:
+		if len(a.input.VerbArgs) > 0 {
+			exitStatus.Code = StatusWrongNumberArgs
+			exitStatus.Message = "'update' does not require any arguments"
+			break
+		}
+
+		a.handleUpdate()
+
 	case Help:
 		if len(a.input.VerbArgs) > 0 {
 			exitStatus.Code = StatusWrongNumberArgs
@@ -87,6 +98,13 @@ func (a *app) handleInstall(pkgName string) error {
 		return err
 	}
 	return nil
+}
+
+
+func (a *app) handleUpdate() {
+	if err := a.manifestManager.UpdateManifest(); err != nil {
+		fmt.Println("update error: ", err)
+	}
 }
 
 func (a *app) handleHelp() {

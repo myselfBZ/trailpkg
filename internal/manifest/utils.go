@@ -144,7 +144,7 @@ func (m *ManifestManager) isDepAvailableHost(name string) bool {
 
 
 func (m *ManifestManager) isDepAvailable(name string, version Version) bool {
-	record, ok := m.installRecordManager.Find(name)
+	record, ok := m.stateManager.Find(name)
 	if !ok {
 		return false
 	}
@@ -162,7 +162,7 @@ func (m *ManifestManager) getPkgVersionMap(deps []PackageDependency) map[string]
 	result := make(map[string]string)
 
 	for _, d := range deps {
-		record, _ := m.installRecordManager.Find(d.Name)
+		record, _ := m.stateManager.Find(d.Name)
 		result[d.Name] = record.Version
 	}
 
