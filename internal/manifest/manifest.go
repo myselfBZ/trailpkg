@@ -23,8 +23,6 @@ type Package struct {
 	Url             string `json:"url"`
 	Outdir          string `json:"out_dir"`
 
-	// OutFiles specifies particular files within Outdir to expose. If set, only
-	// these files are used rather than the entire Outdir contents.
 	ExportBin      ExportBin       `json:"export_bin"`
 	Version        string              `json:"version"`
 	BuildSteps     []string            `json:"build_steps"`

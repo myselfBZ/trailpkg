@@ -8,7 +8,7 @@ import (
 )
 
 
-const rootPath = "/Users/bobirmirzo/trailpkg"
+var rootPath = os.Getenv("TRAILPKG_ROOT")
 
 
 func main() {

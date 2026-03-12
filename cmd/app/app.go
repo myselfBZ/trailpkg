@@ -18,6 +18,7 @@ const (
 	Help    Verb = "help"
 	Update  Verb = "update"
 	Remove  Verb = "rm"
+	Setup	Verb = "setup"
 )
 
 type UserInput struct {
@@ -112,6 +113,8 @@ func (a *app) handleHelp() {
 	fmt.Println("This is trailpkg")
 	fmt.Println("To install packages, run 'trail install <package>'")
 }
+
+
 
 func (a *app) handleRemove(pkgName string) error {
 	fmt.Printf("Removing %s...\n", pkgName)
