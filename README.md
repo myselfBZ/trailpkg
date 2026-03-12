@@ -11,7 +11,7 @@ to set it up please follow these steps:
     - then you can run `make build` and there you go. You got your executable in bin dir.
 
 NOTE that packages insalled with trailpkg aren't accessible systemwide and that they are stored in 
-$TRAILPKG_ROOT/bin directory (if they are executable binaries) or in the $TRAILPKG_ROOT/store/<package>-<version> 
+$TRAILPKG_ROOT/bin directory (if they are executable binaries) or in the $TRAILPKG_ROOT/store/[package]-[version] 
 (if they are libraries).
 
 NOTE that trailpkg is highly dependant on your system's tooling. 
